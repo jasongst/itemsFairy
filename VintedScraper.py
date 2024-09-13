@@ -6,13 +6,13 @@ from BaseScraper import BaseScraper
 
 class VintedScraper(BaseScraper):
     def __init__(self, browser, base_url="https://vinted.fr"):
-        BaseScraper.__init__(self, browser, base_url)
+        BaseScraper.__init__(self, browser, base_url, "Vinted")
 
     async def ascrape_vinted(self, search: str):
         url_parameters = urllib.parse.quote_plus(search)
 
         self.start_scrapping()
-        print("Starting scraping Vinted...")
+        print(f"Starting scraping {self.platform_name}...")
         
         page = await self.browser.get(f"{self.base_url}/catalog?search_text={url_parameters}&order=newest_first", new_tab=True)
         await page.wait(3)
@@ -33,16 +33,14 @@ class VintedScraper(BaseScraper):
         if refuse_cookies_btn:
             await refuse_cookies_btn.click()
 
-        await page.wait(1)
+        await page.wait(3)
 
         last_products_ids = await get_last_products(10)
 
         cpt = 1
         while self.is_running:
             await page.reload()
-            print("refresh " + str(cpt))
-
-            await page.wait(randrange(2, 4))
+            print(f"{self.platform_name}: refresh {str(cpt)}")
 
             last_products_ids_tmp = await get_last_products(10)
 
@@ -55,10 +53,12 @@ class VintedScraper(BaseScraper):
                 if len(urls) > 0:
                     # If a new product is found:
                     url = urls[0]
-                    print(f"new product!: {url}")
-                    requests.post("https://ntfy.sh/alertes_vinbot_diez", json = {'url': url})
+                    print(f"{self.platform_name}: new product!: {url}")
+                    requests.post("https://ntfy.sh/alertes_vinbot_diez", json = {'platform': self.platform_name, 'url': url})
 
             last_products_ids += new_products_ids
+
+            await page.wait(randrange(2, 4))
             cpt += 1
 
-        print("Vinted scrapping stopped")
+        print(f"{self.platform_name} scrapping stopped")
