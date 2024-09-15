@@ -2,7 +2,7 @@ import urllib.parse
 from random import randrange
 import requests
 
-from BaseScraper import BaseScraper
+from scrapers.BaseScraper import BaseScraper
 
 class VintedScraper(BaseScraper):
     def __init__(self, browser, base_url="https://vinted.fr"):
